@@ -29,11 +29,25 @@
                 <p>💡 在情绪危机时刻点击按钮</p>
                 <p>我会陪你度过这30秒</p>
             </div>
+            
+            <!-- 安全照片上传 -->
+            <div class="photo-upload-section">
+                <label for="photoUpload" class="photo-upload-label">
+                    <span class="upload-icon">📷</span>
+                    <span class="upload-text">上传安全照片</span>
+                </label>
+                <input type="file" id="photoUpload" accept="image/*" multiple style="display: none;">
+                <div id="uploadedPhotosPreview" class="uploaded-photos-preview"></div>
+            </div>
         </div>
     </div>
 
     <!-- 恐慌干预流程 - 阶段1：生理锚定 -->
     <div id="stage1Screen" class="screen panic-stage">
+        <div class="unified-background">
+            <canvas id="starsCanvasStage1" class="stars-canvas"></canvas>
+            <div class="warm-glow"></div>
+        </div>
         <div class="stage-container">
             <div class="breathing-instruction">跟着呼吸球，吸气...屏息...呼气...</div>
             
@@ -43,7 +57,7 @@
             </div>
             
             <div class="progress-container">
-                <div id="timeLeft" class="time-left">60秒</div>
+                <div id="timeLeft" class="time-left">64秒</div>
             </div>
             
             <button class="skip-stage-btn">跳过这个，进入下一步</button>
@@ -52,78 +66,129 @@
 
     <!-- 恐慌干预流程 - 阶段2：安全确认 -->
     <div id="stage2Screen" class="screen panic-stage stage2-screen">
-        <div class="stage2-background">
-            <canvas id="starsCanvas" class="stars-canvas"></canvas>
+        <div class="unified-background">
+            <canvas id="starsCanvasStage2" class="stars-canvas"></canvas>
             <div class="warm-glow"></div>
         </div>
         <div class="stage-container">
             <div class="safety-confirmation-text">
-                <span class="word" data-word="你">你</span>
-                <span class="word" data-word="此刻">此刻</span>
-                <span class="word" data-word="是">是</span>
-                <span class="word" data-word="安全的">安全的</span>
-                <span class="word" data-word="。">。</span>
-                <span class="word" data-word="这">这</span>
-                <span class="word" data-word="不是">不是</span>
-                <span class="word" data-word="真正的">真正的</span>
-                <span class="word" data-word="危险">危险</span>
-                <span class="word" data-word="。">。</span>
+                <div class="sentence" data-sentence="你此刻是安全的，">
+                    <span class="word" data-word="你">你</span>
+                    <span class="word" data-word="此刻">此刻</span>
+                    <span class="word" data-word="是">是</span>
+                    <span class="word" data-word="安全的">安全的</span>
+                    <span class="word" data-word="，">，</span>
+                </div>
+                <div class="sentence" data-sentence="这不是真正的危险">
+                    <span class="word" data-word="这">这</span>
+                    <span class="word" data-word="不是">不是</span>
+                    <span class="word" data-word="真正的">真正的</span>
+                    <span class="word" data-word="危险">危险</span>
+                    <!-- <span class="word" data-word="。">。</span> -->
+                </div>
             </div>
             <div class="time-left">15秒</div>
-            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+            <div class="stage-buttons">
+                <button class="back-stage-btn">返回上一步</button>
+                <button class="skip-stage-btn">跳过这个，进入下一步</button>
+            </div>
         </div>
     </div>
 
     <!-- 恐慌干预流程 - 阶段3：自我关怀 -->
     <div id="stage3Screen" class="screen panic-stage">
+        <div class="unified-background">
+            <canvas id="starsCanvasStage3" class="stars-canvas"></canvas>
+            <div class="warm-glow"></div>
+        </div>
         <div class="stage-container">
-            <div class="self-care-instruction">把手放在胸口，或抱住自己</div>
-            <div id="handArea" class="hand-area">
-                <div class="hand-indicator">👋</div>
+            <div class="self-care-instruction">
+                <span class="word" data-word="把">把</span>
+                <span class="word" data-word="手">手</span>
+                <span class="word" data-word="放在">放在</span>
+                <span class="word" data-word="胸口">胸口</span>
+                <span class="word" data-word="，">，</span>
+                <span class="word" data-word="或">或</span>
+                <span class="word" data-word="抱住">抱住</span>
+                <span class="word" data-word="自己">自己</span>
+            </div>
+            <div id="hugImage" class="hug-image">
+                <div class="hug-placeholder">🤗</div>
                 <div class="pulse-effect"></div>
             </div>
             <div class="time-left">30秒</div>
-            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+            <div class="stage-buttons">
+                <button class="back-stage-btn">返回上一步</button>
+                <button class="skip-stage-btn">跳过这个，进入下一步</button>
+            </div>
         </div>
     </div>
 
     <!-- 恐慌干预流程 - 阶段4：安全照片 -->
     <div id="stage4Screen" class="screen panic-stage">
+        <div class="unified-background">
+            <canvas id="starsCanvasStage4" class="stars-canvas"></canvas>
+            <div class="warm-glow"></div>
+        </div>
         <div class="stage-container">
             <div id="safePhotoContainer" class="safe-photo-container">
-                <div class="safe-photo-placeholder">🖼️</div>
+                <div id="safePhotoSlider" class="safe-photo-slider">
+                    <div class="safe-photo-placeholder">🖼️</div>
+                </div>
+                <div class="photo-indicators"></div>
             </div>
             <div class="time-left">20秒</div>
-            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+            <div class="stage-buttons">
+                <button class="back-stage-btn">返回上一步</button>
+                <button class="skip-stage-btn">跳过这个，进入下一步</button>
+            </div>
         </div>
     </div>
 
     <!-- 恐慌干预流程 - 阶段5：感官落地 -->
     <div id="stage5Screen" class="screen panic-stage">
+        <div class="unified-background">
+            <canvas id="starsCanvasStage5" class="stars-canvas"></canvas>
+            <div class="warm-glow"></div>
+        </div>
         <div class="stage-container">
             <div id="sensoryStep" class="sensory-step">
-                <div class="sensory-title">请环顾四周，说出你能看到的5样东西</div>
+                <div class="sensory-title"></div>
                 <div id="sensoryCountdown" class="sensory-countdown">9秒</div>
             </div>
-            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+            <div class="stage-buttons">
+                <button class="back-stage-btn">返回上一步</button>
+                <button class="skip-stage-btn">跳过这个，进入下一步</button>
+            </div>
         </div>
     </div>
 
     <!-- 恐慌干预流程 - 阶段6：思维擦拭（可选） -->
     <div id="stage6Screen" class="screen panic-stage">
+        <div class="unified-background">
+            <canvas id="starsCanvasStage6" class="stars-canvas"></canvas>
+            <div class="warm-glow"></div>
+        </div>
         <div class="stage-container">
             <canvas id="wipeCanvas" class="wipe-canvas"></canvas>
             <div id="affirmationText" class="affirmation-text hidden">这也会过去</div>
-            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+            <div class="stage-buttons">
+                <button class="back-stage-btn">返回上一步</button>
+                <button class="skip-stage-btn">跳过这个，进入下一步</button>
+            </div>
         </div>
     </div>
 
     <!-- 恐慌干预流程 - 阶段7：结束与见证 -->
     <div id="stage7Screen" class="screen panic-stage">
+        <div class="unified-background">
+            <canvas id="starsCanvasStage7" class="stars-canvas"></canvas>
+            <div class="warm-glow"></div>
+        </div>
         <div class="stage-container">
             <div id="tideAnimation" class="tide-animation">🌊</div>
             <div class="completion-message">
-                <p id="completionText" class="completion-text">你刚刚和情绪浪潮一起度过了X分钟。它来了，也会走。</p>
+                <p id="completionText" class="completion-text"></p>
             </div>
             
             <div class="quick-actions">
