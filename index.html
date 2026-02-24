@@ -8,6 +8,9 @@
     <title>情绪急救 - EmotionAid</title>
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -48,9 +51,24 @@
     </div>
 
     <!-- 恐慌干预流程 - 阶段2：安全确认 -->
-    <div id="stage2Screen" class="screen panic-stage">
+    <div id="stage2Screen" class="screen panic-stage stage2-screen">
+        <div class="stage2-background">
+            <canvas id="starsCanvas" class="stars-canvas"></canvas>
+            <div class="warm-glow"></div>
+        </div>
         <div class="stage-container">
-            <div class="safety-confirmation-text">你此刻是安全的。这不是真正的危险。</div>
+            <div class="safety-confirmation-text">
+                <span class="word" data-word="你">你</span>
+                <span class="word" data-word="此刻">此刻</span>
+                <span class="word" data-word="是">是</span>
+                <span class="word" data-word="安全的">安全的</span>
+                <span class="word" data-word="。">。</span>
+                <span class="word" data-word="这">这</span>
+                <span class="word" data-word="不是">不是</span>
+                <span class="word" data-word="真正的">真正的</span>
+                <span class="word" data-word="危险">危险</span>
+                <span class="word" data-word="。">。</span>
+            </div>
             <div class="time-left">15秒</div>
             <button class="skip-stage-btn">跳过这个，进入下一步</button>
         </div>

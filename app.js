@@ -8,6 +8,7 @@ const AppState = {
     stageTimer: null,
     longPressTimer: null,
     speechSynthesis: null,
+    selectedVoice: null, // 选中的女声
     heartbeatAudio: null,
     isWiping: false
 };
@@ -50,6 +51,8 @@ function initApp() {
     // 初始化语音合成
     if ('speechSynthesis' in window) {
         AppState.speechSynthesis = window.speechSynthesis;
+        // 初始化语音选择
+        initVoiceSelection();
     }
     
     // 绑定主界面事件
@@ -192,6 +195,12 @@ function startStage1() {
 function startStage2() {
     switchScreen('stage2Screen');
     
+    // 初始化星光粒子
+    initStarsCanvas();
+    
+    // 逐词淡入动画
+    animateWords();
+    
     const message = "你此刻是安全的。这不是真正的危险。";
     speakText(message);
     
@@ -206,6 +215,74 @@ function startStage2() {
             goToStage(3);
         }
     }, 1000);
+}
+
+// 逐词淡入动画
+function animateWords() {
+    const words = document.querySelectorAll('#stage2Screen .word');
+    words.forEach((word, index) => {
+        setTimeout(() => {
+            word.classList.add('visible');
+        }, index * 300); // 每个词间隔300ms，温柔地逐词显示
+    });
+}
+
+// 初始化星光粒子画布
+function initStarsCanvas() {
+    const canvas = document.getElementById('starsCanvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // 创建星星粒子
+    const stars = [];
+    const starCount = 30;
+    
+    for (let i = 0; i < starCount; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 1.5 + 0.5,
+            opacity: Math.random() * 0.3 + 0.1,
+            speed: Math.random() * 0.5 + 0.2
+        });
+    }
+    
+    // 动画循环
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        stars.forEach(star => {
+            // 更新位置（缓慢流动）
+            star.y += star.speed;
+            if (star.y > canvas.height) {
+                star.y = 0;
+                star.x = Math.random() * canvas.width;
+            }
+            
+            // 绘制星星
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(245, 230, 211, ${star.opacity})`;
+            ctx.fill();
+            
+            // 添加微弱的闪烁效果
+            star.opacity += Math.sin(Date.now() * 0.001 + star.x) * 0.05;
+            star.opacity = Math.max(0.1, Math.min(0.4, star.opacity));
+        });
+        
+        requestAnimationFrame(animate);
+    }
+    
+    animate();
+    
+    // 窗口大小改变时重新调整画布
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
 }
 
 // 阶段3：自我关怀（30秒）
@@ -416,7 +493,75 @@ function hideRestModal() {
     }
 }
 
-// 语音播放
+// 初始化语音选择（选择最温和的女声）
+function initVoiceSelection() {
+    function selectBestVoice() {
+        if (!AppState.speechSynthesis) return;
+        
+        const voices = AppState.speechSynthesis.getVoices();
+        if (voices.length === 0) {
+            // 如果语音列表还没加载，等待加载完成
+            AppState.speechSynthesis.addEventListener('voiceschanged', selectBestVoice, { once: true });
+            return;
+        }
+        
+        // 优先选择的中文女声名称（按优先级排序）
+        const preferredVoiceNames = [
+            'Microsoft Xiaoxiao',      // 微软小晓（温和女声）
+            'Microsoft Xiaoyi',       // 微软小艺（温和女声）
+            'Microsoft Yunxi',        // 微软云希（温和女声）
+            'Xiaoxiao',               // 小晓
+            'Xiaoyi',                 // 小艺
+            'Yunxi',                  // 云希
+            'Ting-Ting',              // 中文女声
+            'Sinji',                  // 中文女声
+            'Mei-Jia',                // 中文女声
+        ];
+        
+        // 查找最合适的女声
+        let selectedVoice = null;
+        
+        // 首先尝试按名称匹配
+        for (const name of preferredVoiceNames) {
+            selectedVoice = voices.find(voice => 
+                voice.lang.includes('zh') && 
+                voice.name.includes(name)
+            );
+            if (selectedVoice) break;
+        }
+        
+        // 如果没有找到，尝试查找任何中文女声
+        if (!selectedVoice) {
+            selectedVoice = voices.find(voice => 
+                voice.lang.includes('zh') && 
+                (voice.name.toLowerCase().includes('female') ||
+                 voice.name.includes('女') ||
+                 voice.name.includes('Female'))
+            );
+        }
+        
+        // 如果还是没有，选择任何中文语音
+        if (!selectedVoice) {
+            selectedVoice = voices.find(voice => voice.lang.includes('zh'));
+        }
+        
+        // 如果找到了合适的语音，保存它
+        if (selectedVoice) {
+            AppState.selectedVoice = selectedVoice;
+            console.log('已选择语音:', selectedVoice.name, selectedVoice.lang);
+        }
+    }
+    
+    // 立即尝试选择
+    selectBestVoice();
+    
+    // 某些浏览器需要等待 voiceschanged 事件
+    if (AppState.speechSynthesis.getVoices().length === 0) {
+        AppState.speechSynthesis.addEventListener('voiceschanged', selectBestVoice);
+    }
+}
+
+// 语音播放 - 使用温和的女声
 function speakText(text) {
     if (AppState.speechSynthesis && text) {
         // 停止之前的语音
@@ -429,12 +574,28 @@ function speakText(text) {
             const audio = new Audio(userVoice);
             audio.play().catch(() => {});
         } else {
-            // 使用系统语音
+            // 使用系统语音 - 温和的女声设置
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-CN';
-            utterance.rate = 0.9;
-            utterance.pitch = 1.0;
-            utterance.volume = 0.8;
+            
+            // 使用选中的女声
+            if (AppState.selectedVoice) {
+                utterance.voice = AppState.selectedVoice;
+            }
+            
+            // 温和、有安全感的语音参数
+            utterance.rate = 0.75;   // 语速稍慢，更温柔（原来是0.9）
+            utterance.pitch = 0.85;  // 音调稍低，更柔和、有安全感（原来是1.0）
+            utterance.volume = parseFloat(localStorage.getItem('speechVolume') || '0.8');
+            
+            // 在标点符号后添加短暂停顿，让语音更自然
+            const textWithPauses = text
+                .replace(/。/g, '。 ')
+                .replace(/，/g, '， ')
+                .replace(/！/g, '！ ')
+                .replace(/？/g, '？ ');
+            utterance.text = textWithPauses;
+            
             AppState.speechSynthesis.speak(utterance);
         }
     }

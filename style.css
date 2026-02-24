@@ -28,7 +28,7 @@ body {
     justify-content: center;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 
 .screen.active {
@@ -737,14 +737,114 @@ img {
 }
 
 /* 阶段2：安全确认 */
+.stage2-screen {
+    background: #1a1a1a;
+    position: relative;
+    overflow: hidden;
+}
+
+.stage2-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #2D1B3A 0%, #1a0f1f 100%);
+    z-index: 0;
+    animation: backgroundFadeIn 1.5s ease;
+}
+
+@keyframes backgroundFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.stars-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.3;
+}
+
+.warm-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, 
+        rgba(255, 200, 150, 0.05) 0%,
+        rgba(255, 200, 150, 0.02) 50%,
+        rgba(255, 200, 150, 0.05) 100%);
+    z-index: 1;
+    animation: glowFlow 8s ease-in-out infinite;
+}
+
+@keyframes glowFlow {
+    0%, 100% {
+        transform: translateY(0);
+        opacity: 0.3;
+    }
+    50% {
+        transform: translateY(-20px);
+        opacity: 0.5;
+    }
+}
+
 .safety-confirmation-text {
+    font-family: 'Kalam', 'Comic Sans MS', '微软雅黑', cursive;
     font-size: 48px;
-    font-weight: bold;
-    color: white;
-    line-height: 1.5;
+    font-weight: 400;
+    color: #F5E6D3;
+    line-height: 1.8;
     padding: 40px 20px;
     text-align: center;
-    animation: fadeIn 0.5s ease;
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 0 20px rgba(245, 230, 211, 0.3),
+                 0 0 40px rgba(245, 230, 211, 0.2),
+                 0 0 60px rgba(245, 230, 211, 0.1);
+    animation: textGlow 2s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+    0%, 100% {
+        text-shadow: 0 0 20px rgba(245, 230, 211, 0.3),
+                     0 0 40px rgba(245, 230, 211, 0.2),
+                     0 0 60px rgba(245, 230, 211, 0.1);
+    }
+    50% {
+        text-shadow: 0 0 30px rgba(245, 230, 211, 0.4),
+                     0 0 50px rgba(245, 230, 211, 0.3),
+                     0 0 70px rgba(245, 230, 211, 0.2);
+    }
+}
+
+.safety-confirmation-text .word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.safety-confirmation-text .word.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+    .safety-confirmation-text {
+        font-size: 36px;
+        padding: 30px 15px;
+    }
 }
 
 /* 阶段3：自我关怀 */
