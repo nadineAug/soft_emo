@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>情绪急救 - EmotionAid</title>
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 主界面 -->
+    <div id="mainScreen" class="screen active">
+        <div class="container">
+            <h1 class="app-title">情绪急救</h1>
+            <p class="subtitle">当你需要帮助时，我在这里</p>
+            
+            <button id="emergencyBtn" class="emergency-button">
+                <span class="btn-text">紧急求助</span>
+                <span class="btn-subtitle">SOS</span>
+            </button>
+            
+            <div class="info-text">
+                <p>💡 在情绪危机时刻点击按钮</p>
+                <p>我会陪你度过这30秒</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 恐慌干预流程 - 阶段1：生理锚定 -->
+    <div id="stage1Screen" class="screen panic-stage">
+        <div class="stage-container">
+            <div class="breathing-instruction">跟着呼吸球，吸气...屏息...呼气...</div>
+            
+            <div class="breathing-ball-container">
+                <div id="breathingBall" class="breathing-ball"></div>
+                <div id="breathingText" class="breathing-text">吸气</div>
+            </div>
+            
+            <div class="progress-container">
+                <div id="timeLeft" class="time-left">60秒</div>
+            </div>
+            
+            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+        </div>
+    </div>
+
+    <!-- 恐慌干预流程 - 阶段2：安全确认 -->
+    <div id="stage2Screen" class="screen panic-stage">
+        <div class="stage-container">
+            <div class="safety-confirmation-text">你此刻是安全的。这不是真正的危险。</div>
+            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+        </div>
+    </div>
+
+    <!-- 恐慌干预流程 - 阶段3：自我关怀 -->
+    <div id="stage3Screen" class="screen panic-stage">
+        <div class="stage-container">
+            <div class="self-care-instruction">把手放在胸口，或抱住自己</div>
+            <div id="handArea" class="hand-area">
+                <div class="hand-indicator">👋</div>
+                <div class="pulse-effect"></div>
+            </div>
+            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+        </div>
+    </div>
+
+    <!-- 恐慌干预流程 - 阶段4：安全照片 -->
+    <div id="stage4Screen" class="screen panic-stage">
+        <div class="stage-container">
+            <div id="safePhotoContainer" class="safe-photo-container">
+                <div class="safe-photo-placeholder">🖼️</div>
+            </div>
+            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+        </div>
+    </div>
+
+    <!-- 恐慌干预流程 - 阶段5：感官落地 -->
+    <div id="stage5Screen" class="screen panic-stage">
+        <div class="stage-container">
+            <div id="sensoryStep" class="sensory-step">
+                <div class="sensory-title">请环顾四周，说出你能看到的5样东西</div>
+                <div id="sensoryCountdown" class="sensory-countdown">9秒</div>
+            </div>
+            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+        </div>
+    </div>
+
+    <!-- 恐慌干预流程 - 阶段6：思维擦拭（可选） -->
+    <div id="stage6Screen" class="screen panic-stage">
+        <div class="stage-container">
+            <canvas id="wipeCanvas" class="wipe-canvas"></canvas>
+            <div id="affirmationText" class="affirmation-text hidden">这也会过去</div>
+            <button class="skip-stage-btn">跳过这个，进入下一步</button>
+        </div>
+    </div>
+
+    <!-- 恐慌干预流程 - 阶段7：结束与见证 -->
+    <div id="stage7Screen" class="screen panic-stage">
+        <div class="stage-container">
+            <div id="tideAnimation" class="tide-animation">🌊</div>
+            <div class="completion-message">
+                <p id="completionText" class="completion-text">你刚刚和情绪浪潮一起度过了X分钟。它来了，也会走。</p>
+            </div>
+            
+            <div class="quick-actions">
+                <button class="quick-action-btn" data-action="breathing">🌊 再呼吸</button>
+                <button class="quick-action-btn" data-action="selfcare">🤲 手放胸口</button>
+                <button class="quick-action-btn" data-action="sensory">👀 感官落地</button>
+                <button class="quick-action-btn" data-action="photo">🖼️ 看看照片</button>
+                <button class="quick-action-btn" data-action="wipe">💭 擦拭想法</button>
+            </div>
+            
+            <div class="final-actions">
+                <button id="restBtn" class="final-action-btn">休息一下</button>
+                <button id="recordBtn" class="final-action-btn">记录此刻</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 长按休息确认弹窗 -->
+    <div id="restConfirmModal" class="modal hidden">
+        <div class="modal-content">
+            <p class="modal-text">你想休息一下吗？</p>
+            <div class="modal-actions">
+                <button id="confirmRestBtn" class="modal-btn">是的，我想休息</button>
+                <button id="cancelRestBtn" class="modal-btn cancel">继续</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 情绪分类界面 -->
+    <div id="emotionScreen" class="screen">
+        <div class="emotion-container">
+            <h2 class="emotion-title">选择你现在的感受</h2>
+            
+            <button class="emotion-button panic" data-emotion="panic">
+                <span class="emotion-emoji">😱</span>
+                <span class="emotion-name">恐慌</span>
+                <span class="emotion-desc">要碎了</span>
+            </button>
+            
+            <button class="emotion-button rage" data-emotion="rage">
+                <span class="emotion-emoji">😡</span>
+                <span class="emotion-name">暴怒</span>
+                <span class="emotion-desc">想破坏</span>
+            </button>
+            
+            <button class="emotion-button sadness" data-emotion="sadness">
+                <span class="emotion-emoji">😢</span>
+                <span class="emotion-name">悲伤</span>
+                <span class="emotion-desc">被抛弃</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 恐慌干预界面 -->
+    <div id="panicScreen" class="screen intervention-screen">
+        <div class="intervention-container">
+            <button id="panicBackBtn" class="back-to-emotion-btn">← 返回</button>
+            
+            <div class="safety-message">
+                <p class="safety-text">这是创伤记忆的警报</p>
+                <p class="safety-text">不是现在的危险</p>
+                <p class="safety-emphasis">你现在很安全</p>
+            </div>
+            
+            <div class="grounding-exercise">
+                <h3 class="grounding-title">5-4-3-2-1 接地练习</h3>
+                <div id="groundingSteps" class="grounding-steps">
+                    <div class="grounding-step active" data-step="1">
+                        <div class="step-number">1/5</div>
+                        <div class="step-instruction">环顾四周，说出你<strong>看到</strong>的5样东西</div>
+                        <div class="step-examples">例如: 桌子、窗户、手机、杯子、椅子</div>
+                    </div>
+                    <div class="grounding-step" data-step="2">
+                        <div class="step-number">2/5</div>
+                        <div class="step-instruction">触摸并说出你<strong>摸到</strong>的4样东西</div>
+                        <div class="step-examples">例如: 衣服、头发、椅子、桌面</div>
+                    </div>
+                    <div class="grounding-step" data-step="3">
+                        <div class="step-number">3/5</div>
+                        <div class="step-instruction">闭上眼睛，说出你<strong>听到</strong>的3种声音</div>
+                        <div class="step-examples">例如: 空调声、汽车声、呼吸声</div>
+                    </div>
+                    <div class="grounding-step" data-step="4">
+                        <div class="step-number">4/5</div>
+                        <div class="step-instruction">注意你<strong>闻到</strong>的2种气味</div>
+                        <div class="step-examples">例如: 空气的味道、自己的气味</div>
+                    </div>
+                    <div class="grounding-step" data-step="5">
+                        <div class="step-number">5/5</div>
+                        <div class="step-instruction">注意你嘴里<strong>品尝</strong>到的1种味道</div>
+                        <div class="step-examples">就是现在嘴里的感觉</div>
+                    </div>
+                </div>
+                <button id="nextStepBtn" class="next-step-btn">下一步</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 暴怒干预界面 -->
+    <div id="rageScreen" class="screen intervention-screen">
+        <div class="intervention-container">
+            <button id="rageBackBtn" class="back-to-emotion-btn">← 返回</button>
+            
+            <div class="rage-instruction">用力滑动，释放你的情绪</div>
+            
+            <div class="rage-slider-container">
+                <input type="range" id="rageSlider" class="rage-slider" min="0" max="100" value="0">
+                <div class="rage-progress-text">
+                    <span id="rageProgress">0</span>%
+                </div>
+            </div>
+            
+            <div id="tapZone" class="tap-zone">
+                <div class="tap-instruction">或者疯狂点击这里</div>
+                <div id="tapCount" class="tap-count">0次</div>
+            </div>
+            
+            <button id="rageDoneBtn" class="done-btn" style="display: none;">完成</button>
+        </div>
+    </div>
+
+    <!-- 悲伤干预界面 -->
+    <div id="sadnessScreen" class="screen intervention-screen">
+        <div class="intervention-container">
+            <button id="sadnessBackBtn" class="back-to-emotion-btn">← 返回</button>
+            
+            <div class="sadness-message">
+                <div class="comfort-icon">💙</div>
+                <p class="comfort-text">你的感受是真实的</p>
+                <p class="comfort-text">你的痛苦是真实的</p>
+                <p class="comfort-emphasis">你值得被爱和关心</p>
+            </div>
+            
+            <div class="affirmation-box">
+                <p class="affirmation">"那些在意你的人，是真实存在的"</p>
+                <p class="affirmation">"这个时刻会过去的"</p>
+                <p class="affirmation">"你已经很勇敢了"</p>
+            </div>
+            
+            <button id="sadnessDoneBtn" class="done-btn">我感觉好一点了</button>
+        </div>
+    </div>
+
+    <!-- 完成界面 -->
+    <div id="completeScreen" class="screen">
+        <div class="complete-container">
+            <div class="complete-icon">✨</div>
+            <h2 class="complete-title">你做到了</h2>
+            <p class="complete-message">危机已经过去</p>
+            <p class="complete-message">你非常勇敢</p>
+            
+            <div class="complete-stats">
+                <p>今天第 <span id="todayCount">1</span> 次使用</p>
+            </div>
+            
+            <button id="backHomeBtn" class="back-home-btn">返回首页</button>
+            
+            <div class="resources">
+                <p class="resources-title">如果你需要更多帮助：</p>
+                <a href="tel:12320" class="resource-link">📞 心理援助热线: 12320</a>
+                <a href="tel:010-82951332" class="resource-link">📞 北京24小时危机干预: 010-82951332</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

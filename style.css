@@ -1,0 +1,697 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 
+                 'Microsoft YaHei', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* 屏幕容器 */
+.screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.screen.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.container,
+.breathing-container,
+.emotion-container,
+.intervention-container,
+.complete-container {
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    text-align: center;
+}
+
+.intervention-container {
+    position: relative;
+    padding-top: 60px;
+}
+
+/* ============ 主界面样式 ============ */
+#mainScreen {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.app-title {
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 60px;
+}
+
+.emergency-button {
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    border: none;
+    box-shadow: 0 10px 40px rgba(238, 90, 111, 0.5),
+                0 0 0 0 rgba(238, 90, 111, 0.7);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 40px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: pulse 2s infinite;
+}
+
+.emergency-button:active {
+    transform: scale(0.95);
+    box-shadow: 0 5px 20px rgba(238, 90, 111, 0.6);
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 10px 40px rgba(238, 90, 111, 0.5),
+                    0 0 0 0 rgba(238, 90, 111, 0.7);
+    }
+    50% {
+        box-shadow: 0 10px 40px rgba(238, 90, 111, 0.5),
+                    0 0 0 15px rgba(238, 90, 111, 0);
+    }
+    100% {
+        box-shadow: 0 10px 40px rgba(238, 90, 111, 0.5),
+                    0 0 0 0 rgba(238, 90, 111, 0);
+    }
+}
+
+.btn-text {
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.btn-subtitle {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+.info-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+/* ============ 呼吸引导界面 ============ */
+#breathingScreen {
+    background: #1a1a1a;
+}
+
+.breathing-instruction {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 60px;
+    font-weight: 500;
+}
+
+.breathing-ball-container {
+    position: relative;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.breathing-ball {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6),
+                0 0 80px rgba(59, 130, 246, 0.3);
+    transition: all 4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.breathing-ball.inhale {
+    width: 240px;
+    height: 240px;
+    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+}
+
+.breathing-ball.hold {
+    width: 240px;
+    height: 240px;
+    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+}
+
+.breathing-ball.exhale {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+}
+
+.breathing-text {
+    position: absolute;
+    font-size: 28px;
+    color: white;
+    font-weight: 600;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.progress-container {
+    margin-top: 20px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.progress-bar::before {
+    content: '';
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+    width: 0%;
+    transition: width 0.3s linear;
+    animation: progress 30s linear;
+}
+
+@keyframes progress {
+    from { width: 0%; }
+    to { width: 100%; }
+}
+
+.time-left {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.skip-btn {
+    margin-top: 30px;
+    padding: 12px 40px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.skip-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.skip-btn:active {
+    transform: scale(0.95);
+}
+
+/* ============ 情绪分类界面 ============ */
+#emotionScreen {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+}
+
+.emotion-title {
+    font-size: 32px;
+    color: white;
+    margin-bottom: 40px;
+    font-weight: 600;
+}
+
+.emotion-button {
+    width: 100%;
+    padding: 30px;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.emotion-button:active {
+    transform: scale(0.98);
+}
+
+.emotion-button.panic {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+}
+
+.emotion-button.rage {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+.emotion-button.sadness {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.emotion-emoji {
+    font-size: 56px;
+}
+
+.emotion-name {
+    font-size: 36px;
+    font-weight: bold;
+    color: white;
+}
+
+.emotion-desc {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ============ 干预界面通用样式 ============ */
+.intervention-screen {
+    background: #1a1a1a;
+}
+
+.back-to-emotion-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.back-to-emotion-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.back-to-emotion-btn:active {
+    transform: scale(0.95);
+}
+
+/* ============ 恐慌干预界面 ============ */
+.safety-message {
+    margin-bottom: 40px;
+    padding: 30px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 20px;
+    border: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+.safety-text {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.safety-emphasis {
+    font-size: 32px;
+    font-weight: bold;
+    color: #8b5cf6;
+    margin-top: 20px;
+}
+
+.grounding-title {
+    font-size: 28px;
+    color: white;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.grounding-steps {
+    position: relative;
+    min-height: 250px;
+}
+
+.grounding-step {
+    display: none;
+    padding: 30px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 20px;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+.grounding-step.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.step-number {
+    font-size: 18px;
+    color: #60a5fa;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.step-instruction {
+    font-size: 24px;
+    color: white;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.step-instruction strong {
+    color: #60a5fa;
+}
+
+.step-examples {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+.next-step-btn {
+    margin-top: 30px;
+    padding: 18px 50px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    transition: transform 0.2s ease;
+}
+
+.next-step-btn:active {
+    transform: scale(0.95);
+}
+
+/* ============ 暴怒干预界面 ============ */
+.rage-instruction {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 40px;
+    font-weight: 500;
+}
+
+.rage-slider-container {
+    margin-bottom: 50px;
+}
+
+.rage-slider {
+    width: 100%;
+    height: 15px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(249, 115, 22, 0.2);
+    border-radius: 10px;
+    outline: none;
+    margin-bottom: 20px;
+}
+
+.rage-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.6);
+}
+
+.rage-slider::-moz-range-thumb {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.6);
+}
+
+.rage-progress-text {
+    font-size: 48px;
+    font-weight: bold;
+    color: #f97316;
+}
+
+.tap-zone {
+    width: 100%;
+    height: 200px;
+    background: rgba(249, 115, 22, 0.1);
+    border: 3px dashed rgba(249, 115, 22, 0.5);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.1s ease;
+    margin-bottom: 30px;
+}
+
+.tap-zone:active {
+    background: rgba(249, 115, 22, 0.3);
+}
+
+.tap-instruction {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 15px;
+}
+
+.tap-count {
+    font-size: 36px;
+    font-weight: bold;
+    color: #f97316;
+}
+
+/* ============ 悲伤干预界面 ============ */
+.sadness-message {
+    margin-bottom: 40px;
+    padding: 40px 30px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 20px;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+.comfort-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.comfort-text {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.comfort-emphasis {
+    font-size: 28px;
+    font-weight: bold;
+    color: #3b82f6;
+    margin-top: 20px;
+}
+
+.affirmation-box {
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    margin-bottom: 30px;
+}
+
+.affirmation {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 20px;
+    line-height: 1.6;
+    font-style: italic;
+}
+
+.affirmation:last-child {
+    margin-bottom: 0;
+}
+
+.done-btn {
+    padding: 18px 50px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    transition: transform 0.2s ease;
+}
+
+.done-btn:active {
+    transform: scale(0.95);
+}
+
+/* ============ 完成界面 ============ */
+#completeScreen {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.complete-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: celebrate 1s ease;
+}
+
+@keyframes celebrate {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.2) rotate(-10deg); }
+    75% { transform: scale(1.2) rotate(10deg); }
+}
+
+.complete-title {
+    font-size: 48px;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.complete-message {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 10px;
+}
+
+.complete-stats {
+    margin: 30px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    font-size: 18px;
+    color: white;
+}
+
+.back-home-btn {
+    padding: 18px 50px;
+    background: white;
+    color: #059669;
+    border: none;
+    border-radius: 50px;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+    margin-bottom: 40px;
+}
+
+.back-home-btn:active {
+    transform: scale(0.95);
+}
+
+.resources {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+}
+
+.resources-title {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 15px;
+}
+
+.resource-link {
+    display: block;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: background 0.2s ease;
+}
+
+.resource-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============ 响应式设计 ============ */
+@media (max-width: 480px) {
+    .app-title {
+        font-size: 40px;
+    }
+    
+    .emergency-button {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .btn-text {
+        font-size: 28px;
+    }
+    
+    .emotion-name {
+        font-size: 32px;
+    }
+    
+    .emotion-desc {
+        font-size: 20px;
+    }
+}
+
+/* ============ 防止文本选择和拖拽 ============ */
+button, .tap-zone {
+    -webkit-tap-highlight-color: transparent;
+}
+
+img {
+    pointer-events: none;
+}
