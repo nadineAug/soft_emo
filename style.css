@@ -695,3 +695,368 @@ button, .tap-zone {
 img {
     pointer-events: none;
 }
+
+/* ============ 恐慌干预流程样式 ============ */
+.panic-stage {
+    background: #1a1a1a;
+    color: white;
+}
+
+.stage-container {
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 跳过按钮 */
+.skip-stage-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s ease;
+}
+
+.skip-stage-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* 阶段2：安全确认 */
+.safety-confirmation-text {
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+    line-height: 1.5;
+    padding: 40px 20px;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+/* 阶段3：自我关怀 */
+.self-care-instruction {
+    font-size: 32px;
+    color: white;
+    margin-bottom: 40px;
+    line-height: 1.5;
+}
+
+.hand-area {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(139, 92, 246, 0.2);
+    border: 3px solid rgba(139, 92, 246, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 40px 0;
+}
+
+.hand-area.touching {
+    background: rgba(139, 92, 246, 0.4);
+    border-color: rgba(139, 92, 246, 0.8);
+    transform: scale(1.1);
+}
+
+.hand-indicator {
+    font-size: 80px;
+    z-index: 2;
+}
+
+.pulse-effect {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(139, 92, 246, 0.3);
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+.pulse-effect.active {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* 阶段4：安全照片 */
+.safe-photo-container {
+    width: 100%;
+    max-width: 400px;
+    height: 400px;
+    margin: 40px auto;
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.safe-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.safe-photo-placeholder {
+    font-size: 120px;
+    opacity: 0.5;
+}
+
+/* 阶段5：感官落地 */
+.sensory-step {
+    padding: 40px 20px;
+}
+
+.sensory-title {
+    font-size: 36px;
+    font-weight: bold;
+    color: white;
+    line-height: 1.5;
+    margin-bottom: 40px;
+    min-height: 120px;
+}
+
+.sensory-countdown {
+    font-size: 48px;
+    color: #8b5cf6;
+    font-weight: bold;
+    margin-top: 40px;
+}
+
+/* 阶段6：思维擦拭 */
+.wipe-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    touch-action: none;
+}
+
+.affirmation-text {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+    z-index: 2;
+    text-align: center;
+    padding: 40px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+    transition: opacity 0.5s ease;
+}
+
+.affirmation-text.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* 阶段7：结束与见证 */
+.tide-animation {
+    font-size: 120px;
+    margin-bottom: 40px;
+    animation: wave 2s ease-in-out infinite;
+}
+
+.tide-animation.animate {
+    animation: wave 2s ease-in-out infinite, fadeIn 1s ease;
+}
+
+@keyframes wave {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(5deg);
+    }
+}
+
+.completion-message {
+    margin: 40px 0;
+    padding: 30px 20px;
+}
+
+.completion-text {
+    font-size: 28px;
+    color: white;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin: 40px 0;
+    padding: 0 20px;
+}
+
+.quick-action-btn {
+    padding: 15px 25px;
+    background: rgba(139, 92, 246, 0.2);
+    color: white;
+    border: 2px solid rgba(139, 92, 246, 0.5);
+    border-radius: 25px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 140px;
+}
+
+.quick-action-btn:active {
+    transform: scale(0.95);
+    background: rgba(139, 92, 246, 0.4);
+}
+
+.final-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
+    padding: 0 20px;
+}
+
+.final-action-btn {
+    padding: 18px 40px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    transition: transform 0.2s ease;
+    flex: 1;
+    max-width: 200px;
+}
+
+.final-action-btn:active {
+    transform: scale(0.95);
+}
+
+/* 休息确认弹窗 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #2d3748;
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 300px;
+    width: 90%;
+    text-align: center;
+}
+
+.modal-text {
+    font-size: 24px;
+    color: white;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.modal-btn {
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.modal-btn.cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.modal-btn:active {
+    transform: scale(0.95);
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+    .safety-confirmation-text {
+        font-size: 36px;
+    }
+    
+    .sensory-title {
+        font-size: 28px;
+    }
+    
+    .completion-text {
+        font-size: 24px;
+    }
+    
+    .quick-action-btn {
+        font-size: 16px;
+        padding: 12px 20px;
+    }
+    
+    .hand-area {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .hand-indicator {
+        font-size: 60px;
+    }
+}

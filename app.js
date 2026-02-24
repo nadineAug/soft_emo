@@ -1,21 +1,43 @@
 // 应用状态管理
 const AppState = {
     currentScreen: 'mainScreen',
-    currentEmotion: null,
-    currentGroundingStep: 1,
-    usageCount: 0,
-    tapCount: 0,
-    breathingInterval: null
+    currentStage: 1,
+    startTime: null,
+    totalDuration: 0,
+    breathingInterval: null,
+    stageTimer: null,
+    longPressTimer: null,
+    speechSynthesis: null,
+    heartbeatAudio: null,
+    isWiping: false
 };
+
+// 恐慌干预阶段配置
+const PanicStages = {
+    1: { duration: 60000, name: '生理锚定' },
+    2: { duration: 15000, name: '安全确认' },
+    3: { duration: 30000, name: '自我关怀' },
+    4: { duration: 20000, name: '安全照片' },
+    5: { duration: 45000, name: '感官落地' },
+    6: { duration: 30000, name: '思维擦拭' },
+    7: { duration: 0, name: '结束与见证' }
+};
+
+// 感官落地步骤配置
+const SensorySteps = [
+    { text: '请环顾四周，说出你能看到的5样东西', voice: '现在，观察一下环境，数一数你可以看到的5种物品', duration: 9000 },
+    { text: '仔细聆听，说出你能听到的4种声音', voice: '现在，静下心，留心你能听到的4种不同声音', duration: 9000 },
+    { text: '感受并说出你能触摸到的3种物体或质感', voice: '请触摸一下身边的物体，说出3个不同的触感，比如衣服的质感、椅子的表面', duration: 9000 },
+    { text: '注意你现在能闻到的2种气味', voice: '深呼吸一下，感受身边2种不同的气味，可以是空气、香薰或食物的味道', duration: 9000 },
+    { text: '关注你嘴巴里的1种味道', voice: '觉察一下你口中还能尝到的味道，也许是水，或刚刚吃过的东西', duration: 9000 }
+];
 
 // 屏幕切换函数
 function switchScreen(screenId) {
-    // 隐藏所有屏幕
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
     });
     
-    // 显示目标屏幕
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
         targetScreen.classList.add('active');
@@ -25,267 +47,555 @@ function switchScreen(screenId) {
 
 // 初始化应用
 function initApp() {
-    // 从本地存储加载使用次数
-    const savedCount = localStorage.getItem('emotionAidUsageCount');
-    if (savedCount) {
-        AppState.usageCount = parseInt(savedCount);
+    // 初始化语音合成
+    if ('speechSynthesis' in window) {
+        AppState.speechSynthesis = window.speechSynthesis;
     }
     
     // 绑定主界面事件
-    document.getElementById('emergencyBtn').addEventListener('click', startEmergencyMode);
+    const emergencyBtn = document.getElementById('emergencyBtn');
+    if (emergencyBtn) {
+        emergencyBtn.addEventListener('click', startPanicIntervention);
+    }
     
-    // 绑定情绪选择按钮
-    document.querySelectorAll('.emotion-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const emotion = e.currentTarget.dataset.emotion;
-            selectEmotion(emotion);
+    // 绑定所有跳过按钮
+    document.querySelectorAll('.skip-stage-btn').forEach(btn => {
+        btn.addEventListener('click', skipCurrentStage);
+    });
+    
+    // 绑定长按事件
+    setupLongPress();
+    
+    // 绑定阶段7的按钮
+    const restBtn = document.getElementById('restBtn');
+    const recordBtn = document.getElementById('recordBtn');
+    const confirmRestBtn = document.getElementById('confirmRestBtn');
+    const cancelRestBtn = document.getElementById('cancelRestBtn');
+    
+    if (restBtn) restBtn.addEventListener('click', () => switchScreen('mainScreen'));
+    if (recordBtn) recordBtn.addEventListener('click', recordIntervention);
+    if (confirmRestBtn) confirmRestBtn.addEventListener('click', () => {
+        hideRestModal();
+        goToStage7();
+    });
+    if (cancelRestBtn) cancelRestBtn.addEventListener('click', hideRestModal);
+    
+    // 绑定快捷操作按钮
+    document.querySelectorAll('.quick-action-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const action = e.currentTarget.dataset.action;
+            handleQuickAction(action);
         });
     });
     
-    // 绑定恐慌模式下一步按钮
-    document.getElementById('nextStepBtn').addEventListener('click', nextGroundingStep);
+    // 初始化思维擦拭画布
+    initWipeCanvas();
     
-    // 绑定暴怒模式滑块
-    const rageSlider = document.getElementById('rageSlider');
-    rageSlider.addEventListener('input', (e) => {
-        const value = e.target.value;
-        document.getElementById('rageProgress').textContent = value;
-        
-        // 当滑到80%以上时显示完成按钮
-        if (value >= 80) {
-            document.getElementById('rageDoneBtn').style.display = 'block';
-        }
-    });
-    
-    // 绑定暴怒模式点击区域
-    const tapZone = document.getElementById('tapZone');
-    tapZone.addEventListener('click', () => {
-        AppState.tapCount++;
-        document.getElementById('tapCount').textContent = AppState.tapCount + '次';
-        
-        // 添加点击动画效果
-        tapZone.style.transform = 'scale(0.98)';
-        setTimeout(() => {
-            tapZone.style.transform = 'scale(1)';
-        }, 100);
-        
-        // 当点击超过30次时显示完成按钮
-        if (AppState.tapCount >= 30) {
-            document.getElementById('rageDoneBtn').style.display = 'block';
-        }
-    });
-    
-    // 绑定暴怒模式完成按钮
-    document.getElementById('rageDoneBtn').addEventListener('click', () => {
-        completeIntervention();
-    });
-    
-    // 绑定悲伤模式完成按钮
-    document.getElementById('sadnessDoneBtn').addEventListener('click', () => {
-        completeIntervention();
-    });
-    
-    // 绑定返回首页按钮
-    document.getElementById('backHomeBtn').addEventListener('click', () => {
-        resetApp();
-        switchScreen('mainScreen');
-    });
-    
-    // 绑定跳过呼吸练习按钮
-    document.getElementById('skipBreathingBtn').addEventListener('click', () => {
-        skipBreathing();
-    });
-    
-    // 绑定干预界面返回按钮
-    document.getElementById('panicBackBtn').addEventListener('click', () => {
-        backToEmotionSelect();
-    });
-    
-    document.getElementById('rageBackBtn').addEventListener('click', () => {
-        backToEmotionSelect();
-    });
-    
-    document.getElementById('sadnessBackBtn').addEventListener('click', () => {
-        backToEmotionSelect();
-    });
+    // 初始化触摸反馈
+    initTouchFeedback();
 }
 
-// 开始紧急模式
-function startEmergencyMode() {
-    // 增加使用次数
-    AppState.usageCount++;
-    localStorage.setItem('emotionAidUsageCount', AppState.usageCount.toString());
-    
-    // 切换到呼吸引导界面
-    switchScreen('breathingScreen');
-    
-    // 开始呼吸练习
-    startBreathingExercise();
+// 开始恐慌干预流程
+function startPanicIntervention() {
+    AppState.startTime = Date.now();
+    AppState.currentStage = 1;
+    goToStage(1);
 }
 
-// 呼吸练习
-function startBreathingExercise() {
+// 进入指定阶段
+function goToStage(stageNum) {
+    AppState.currentStage = stageNum;
+    
+    // 清除之前的定时器
+    clearAllTimers();
+    
+    switch(stageNum) {
+        case 1:
+            startStage1();
+            break;
+        case 2:
+            startStage2();
+            break;
+        case 3:
+            startStage3();
+            break;
+        case 4:
+            startStage4();
+            break;
+        case 5:
+            startStage5();
+            break;
+        case 6:
+            startStage6();
+            break;
+        case 7:
+            startStage7();
+            break;
+    }
+}
+
+// 阶段1：生理锚定（60秒，4-7-8呼吸）
+function startStage1() {
+    switchScreen('stage1Screen');
+    
     const ball = document.getElementById('breathingBall');
     const text = document.getElementById('breathingText');
     const timeLeftEl = document.getElementById('timeLeft');
     
-    let timeLeft = 30;
+    let timeLeft = 60;
     let cycleCount = 0;
-    const cycles = 3; // 3个呼吸周期
-    
-    // 清除之前的倒计时（如果有）
-    if (AppState.breathingInterval) {
-        clearInterval(AppState.breathingInterval);
-    }
     
     // 更新倒计时
-    AppState.breathingInterval = setInterval(() => {
+    AppState.stageTimer = setInterval(() => {
         timeLeft--;
-        timeLeftEl.textContent = timeLeft + '秒';
+        if (timeLeftEl) timeLeftEl.textContent = timeLeft + '秒';
         
         if (timeLeft <= 0) {
-            clearInterval(AppState.breathingInterval);
-            AppState.breathingInterval = null;
-            // 呼吸练习结束，切换到情绪分类
-            switchScreen('emotionScreen');
+            clearInterval(AppState.stageTimer);
+            goToStage(2);
         }
     }, 1000);
     
-    // 呼吸周期函数
+    // 4-7-8呼吸节奏
     function breatheCycle() {
-        if (cycleCount >= cycles) {
-            return;
-        }
+        if (timeLeft <= 0) return;
         
-        cycleCount++;
-        
-        // 吸气阶段 (4秒)
-        ball.className = 'breathing-ball inhale';
-        text.textContent = '吸气';
+        // 吸气 4秒
+        if (ball) ball.className = 'breathing-ball inhale';
+        if (text) text.textContent = '吸气';
         
         setTimeout(() => {
-            // 屏息阶段 (2秒)
-            ball.className = 'breathing-ball hold';
-            text.textContent = '保持';
+            if (timeLeft <= 0) return;
+            // 屏息 7秒
+            if (ball) ball.className = 'breathing-ball hold';
+            if (text) text.textContent = '屏息';
             
             setTimeout(() => {
-                // 呼气阶段 (6秒)
-                ball.className = 'breathing-ball exhale';
-                text.textContent = '呼气';
+                if (timeLeft <= 0) return;
+                // 呼气 8秒
+                if (ball) ball.className = 'breathing-ball exhale';
+                if (text) text.textContent = '呼气';
                 
                 setTimeout(() => {
-                    // 下一个周期
-                    breatheCycle();
-                }, 6000);
-            }, 2000);
+                    if (timeLeft > 0) {
+                        breatheCycle();
+                    }
+                }, 8000);
+            }, 7000);
         }, 4000);
     }
     
-    // 开始第一个周期
     breatheCycle();
 }
 
-// 跳过呼吸练习
-function skipBreathing() {
-    // 清除倒计时
+// 阶段2：安全确认（15秒）
+function startStage2() {
+    switchScreen('stage2Screen');
+    
+    const message = "你此刻是安全的。这不是真正的危险。";
+    speakText(message);
+    
+    let timeLeft = 15;
+    const timeLeftEl = document.querySelector('#stage2Screen .time-left');
+    
+    AppState.stageTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeftEl) timeLeftEl.textContent = timeLeft + '秒';
+        if (timeLeft <= 0) {
+            clearInterval(AppState.stageTimer);
+            goToStage(3);
+        }
+    }, 1000);
+}
+
+// 阶段3：自我关怀（30秒）
+function startStage3() {
+    switchScreen('stage3Screen');
+    
+    const message = "我在这里，我不会离开你";
+    speakText(message);
+    
+    let timeLeft = 30;
+    const timeLeftEl = document.querySelector('#stage3Screen .time-left');
+    
+    AppState.stageTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeftEl) timeLeftEl.textContent = timeLeft + '秒';
+        if (timeLeft <= 0) {
+            clearInterval(AppState.stageTimer);
+            goToStage(4);
+        }
+    }, 1000);
+}
+
+// 阶段4：安全照片（20秒）
+function startStage4() {
+    switchScreen('stage4Screen');
+    
+    const message = "看看这个让你感到安全的存在";
+    speakText(message);
+    
+    // 加载安全照片
+    const container = document.getElementById('safePhotoContainer');
+    if (container) {
+        const savedPhoto = localStorage.getItem('safePhoto');
+        if (savedPhoto) {
+            const img = document.createElement('img');
+            img.src = savedPhoto;
+            img.className = 'safe-photo';
+            img.style.opacity = '0';
+            container.innerHTML = '';
+            container.appendChild(img);
+            setTimeout(() => {
+                img.style.transition = 'opacity 2s';
+                img.style.opacity = '1';
+            }, 100);
+        } else {
+            container.innerHTML = '<div class="safe-photo-placeholder">🖼️</div>';
+        }
+    }
+    
+    let timeLeft = 20;
+    const timeLeftEl = document.querySelector('#stage4Screen .time-left');
+    
+    AppState.stageTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeftEl) timeLeftEl.textContent = timeLeft + '秒';
+        if (timeLeft <= 0) {
+            clearInterval(AppState.stageTimer);
+            goToStage(5);
+        }
+    }, 1000);
+}
+
+// 阶段5：感官落地（45秒，五感正念）
+function startStage5() {
+    switchScreen('stage5Screen');
+    
+    let currentStep = 0;
+    
+    function showNextStep() {
+        if (currentStep >= SensorySteps.length) {
+            goToStage(7);
+            return;
+        }
+        
+        const step = SensorySteps[currentStep];
+        const titleEl = document.querySelector('.sensory-title');
+        const countdownEl = document.getElementById('sensoryCountdown');
+        
+        if (titleEl) titleEl.textContent = step.text;
+        speakText(step.voice);
+        
+        let stepTimeLeft = Math.floor(step.duration / 1000);
+        if (countdownEl) countdownEl.textContent = stepTimeLeft + '秒';
+        
+        const stepTimer = setInterval(() => {
+            stepTimeLeft--;
+            if (countdownEl) countdownEl.textContent = stepTimeLeft + '秒';
+            
+            if (stepTimeLeft <= 0) {
+                clearInterval(stepTimer);
+                currentStep++;
+                setTimeout(showNextStep, 500);
+            }
+        }, 1000);
+    }
+    
+    showNextStep();
+}
+
+// 阶段6：思维擦拭（可选，30秒）
+function startStage6() {
+    switchScreen('stage6Screen');
+    
+    const affirmations = ["这也会过去", "我能够应对", "我是安全的"];
+    const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
+    
+    const affirmationEl = document.getElementById('affirmationText');
+    if (affirmationEl) {
+        affirmationEl.textContent = randomAffirmation;
+        affirmationEl.classList.add('hidden');
+    }
+    
+    speakText(randomAffirmation);
+    
+    let timeLeft = 30;
+    
+    AppState.stageTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(AppState.stageTimer);
+            goToStage(7);
+        }
+    }, 1000);
+}
+
+// 阶段7：结束与见证
+function startStage7() {
+    switchScreen('stage7Screen');
+    
+    // 计算总耗时
+    if (AppState.startTime) {
+        AppState.totalDuration = Math.floor((Date.now() - AppState.startTime) / 1000);
+        const minutes = Math.floor(AppState.totalDuration / 60);
+        const seconds = AppState.totalDuration % 60;
+        
+        const completionText = document.getElementById('completionText');
+        if (completionText) {
+            if (minutes > 0) {
+                completionText.textContent = `你刚刚和情绪浪潮一起度过了${minutes}分${seconds}秒。它来了，也会走。`;
+            } else {
+                completionText.textContent = `你刚刚和情绪浪潮一起度过了${seconds}秒。它来了，也会走。`;
+            }
+        }
+    }
+    
+    // 播放潮汐动画
+    const tideEl = document.getElementById('tideAnimation');
+    if (tideEl) {
+        tideEl.classList.add('animate');
+    }
+}
+
+// 跳过当前阶段
+function skipCurrentStage() {
+    if (AppState.currentStage < 7) {
+        goToStage(AppState.currentStage + 1);
+    } else {
+        goToStage7();
+    }
+}
+
+// 直接跳到阶段7
+function goToStage7() {
+    goToStage(7);
+}
+
+// 设置长按功能
+function setupLongPress() {
+    let pressTimer = null;
+    const longPressDelay = 800; // 800ms
+    
+    document.addEventListener('touchstart', (e) => {
+        if (AppState.currentScreen.includes('stage')) {
+            pressTimer = setTimeout(() => {
+                showRestModal();
+            }, longPressDelay);
+        }
+    });
+    
+    document.addEventListener('touchend', () => {
+        if (pressTimer) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+    });
+    
+    document.addEventListener('touchmove', () => {
+        if (pressTimer) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+    });
+}
+
+// 显示休息确认弹窗
+function showRestModal() {
+    const modal = document.getElementById('restConfirmModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+// 隐藏休息确认弹窗
+function hideRestModal() {
+    const modal = document.getElementById('restConfirmModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// 语音播放
+function speakText(text) {
+    if (AppState.speechSynthesis && text) {
+        // 停止之前的语音
+        AppState.speechSynthesis.cancel();
+        
+        // 检查是否有用户录制的版本
+        const userVoice = localStorage.getItem('userVoice_' + text);
+        if (userVoice) {
+            // 播放用户录制的版本（这里简化处理，实际需要音频播放）
+            const audio = new Audio(userVoice);
+            audio.play().catch(() => {});
+        } else {
+            // 使用系统语音
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 0.8;
+            AppState.speechSynthesis.speak(utterance);
+        }
+    }
+}
+
+// 初始化思维擦拭画布
+function initWipeCanvas() {
+    const canvas = document.getElementById('wipeCanvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // 绘制模糊层
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    let isDrawing = false;
+    
+    canvas.addEventListener('touchstart', (e) => {
+        isDrawing = true;
+        AppState.isWiping = true;
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        wipeAt(ctx, touch.clientX - rect.left, touch.clientY - rect.top);
+    });
+    
+    canvas.addEventListener('touchmove', (e) => {
+        if (isDrawing) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            wipeAt(ctx, touch.clientX - rect.left, touch.clientY - rect.top);
+        }
+    });
+    
+    canvas.addEventListener('touchend', () => {
+        isDrawing = false;
+        checkWipeComplete(ctx, canvas);
+    });
+}
+
+// 擦拭操作
+function wipeAt(ctx, x, y) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 50, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+// 检查擦拭是否完成
+function checkWipeComplete(ctx, canvas) {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+    let transparentPixels = 0;
+    
+    for (let i = 3; i < pixels.length; i += 4) {
+        if (pixels[i] < 128) {
+            transparentPixels++;
+        }
+    }
+    
+    const transparency = transparentPixels / (pixels.length / 4);
+    if (transparency > 0.3) {
+        const affirmationEl = document.getElementById('affirmationText');
+        if (affirmationEl) {
+            affirmationEl.classList.remove('hidden');
+        }
+    }
+}
+
+// 初始化触摸反馈
+function initTouchFeedback() {
+    const handArea = document.getElementById('handArea');
+    if (!handArea) return;
+    
+    handArea.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handArea.classList.add('touching');
+        
+        // 播放心跳声（简化处理，实际需要音频文件）
+        playHeartbeat();
+        
+        // 脉冲光效果
+        const pulse = document.querySelector('.pulse-effect');
+        if (pulse) {
+            pulse.classList.add('active');
+        }
+    });
+    
+    handArea.addEventListener('touchend', () => {
+        handArea.classList.remove('touching');
+        const pulse = document.querySelector('.pulse-effect');
+        if (pulse) {
+            pulse.classList.remove('active');
+        }
+    });
+}
+
+// 播放心跳声
+function playHeartbeat() {
+    // 简化处理：使用震动模拟心跳
+    if ('vibrate' in navigator) {
+        navigator.vibrate([100, 50, 100, 50, 100]);
+    }
+}
+
+// 处理快捷操作
+function handleQuickAction(action) {
+    switch(action) {
+        case 'breathing':
+            goToStage(1);
+            break;
+        case 'selfcare':
+            goToStage(3);
+            break;
+        case 'sensory':
+            goToStage(5);
+            break;
+        case 'photo':
+            goToStage(4);
+            break;
+        case 'wipe':
+            goToStage(6);
+            break;
+    }
+}
+
+// 记录干预
+function recordIntervention() {
+    const record = {
+        timestamp: new Date().toISOString(),
+        duration: AppState.totalDuration,
+        stages: AppState.currentStage
+    };
+    
+    const records = JSON.parse(localStorage.getItem('interventionRecords') || '[]');
+    records.push(record);
+    localStorage.setItem('interventionRecords', JSON.stringify(records));
+    
+    alert('已记录本次干预');
+}
+
+// 清除所有定时器
+function clearAllTimers() {
     if (AppState.breathingInterval) {
         clearInterval(AppState.breathingInterval);
         AppState.breathingInterval = null;
     }
-    
-    // 直接跳转到情绪分类界面
-    switchScreen('emotionScreen');
-}
-
-// 返回情绪分类界面
-function backToEmotionSelect() {
-    switchScreen('emotionScreen');
-}
-
-// 选择情绪
-function selectEmotion(emotion) {
-    AppState.currentEmotion = emotion;
-    
-    // 根据不同情绪跳转到对应干预页面
-    switch(emotion) {
-        case 'panic':
-            switchScreen('panicScreen');
-            initPanicMode();
-            break;
-        case 'rage':
-            switchScreen('rageScreen');
-            initRageMode();
-            break;
-        case 'sadness':
-            switchScreen('sadnessScreen');
-            break;
+    if (AppState.stageTimer) {
+        clearInterval(AppState.stageTimer);
+        AppState.stageTimer = null;
     }
-}
-
-// 初始化恐慌模式
-function initPanicMode() {
-    // 重置到第一步
-    AppState.currentGroundingStep = 1;
-    
-    // 隐藏所有步骤
-    document.querySelectorAll('.grounding-step').forEach(step => {
-        step.classList.remove('active');
-    });
-    
-    // 显示第一步
-    document.querySelector('.grounding-step[data-step="1"]').classList.add('active');
-}
-
-// 下一个接地步骤
-function nextGroundingStep() {
-    // 隐藏当前步骤
-    document.querySelector('.grounding-step[data-step="' + AppState.currentGroundingStep + '"]')
-        .classList.remove('active');
-    
-    AppState.currentGroundingStep++;
-    
-    if (AppState.currentGroundingStep > 5) {
-        // 完成所有步骤
-        completeIntervention();
-    } else {
-        // 显示下一步
-        document.querySelector('.grounding-step[data-step="' + AppState.currentGroundingStep + '"]')
-            .classList.add('active');
-        
-        // 如果是最后一步，改变按钮文字
-        if (AppState.currentGroundingStep === 5) {
-            document.getElementById('nextStepBtn').textContent = '完成';
-        }
+    if (AppState.longPressTimer) {
+        clearTimeout(AppState.longPressTimer);
+        AppState.longPressTimer = null;
     }
-}
-
-// 初始化暴怒模式
-function initRageMode() {
-    // 重置滑块和点击计数
-    document.getElementById('rageSlider').value = 0;
-    document.getElementById('rageProgress').textContent = '0';
-    AppState.tapCount = 0;
-    document.getElementById('tapCount').textContent = '0次';
-    document.getElementById('rageDoneBtn').style.display = 'none';
-}
-
-// 完成干预
-function completeIntervention() {
-    // 更新统计数据
-    document.getElementById('todayCount').textContent = AppState.usageCount;
-    
-    // 切换到完成界面
-    switchScreen('completeScreen');
-}
-
-// 重置应用状态
-function resetApp() {
-    AppState.currentEmotion = null;
-    AppState.currentGroundingStep = 1;
-    AppState.tapCount = 0;
-    
-    // 重置按钮文字
-    document.getElementById('nextStepBtn').textContent = '下一步';
+    if (AppState.speechSynthesis) {
+        AppState.speechSynthesis.cancel();
+    }
 }
 
 // 页面加载完成后初始化
@@ -308,28 +618,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }, false);
 });
 
-// 添加震动反馈（如果设备支持）
+// 震动反馈
 function vibrate(pattern = 50) {
     if ('vibrate' in navigator) {
         navigator.vibrate(pattern);
     }
 }
 
-// 在关键操作时添加震动反馈
-document.addEventListener('DOMContentLoaded', () => {
-    // 紧急按钮震动
-    document.getElementById('emergencyBtn').addEventListener('click', () => {
-        vibrate(100);
-    });
-    
-    // 情绪按钮震动
-    document.querySelectorAll('.emotion-button').forEach(button => {
-        button.addEventListener('click', () => {
-            vibrate([50, 30, 50]);
-        });
-    });
-});
-
 // 导出给控制台调试用
 window.AppState = AppState;
 window.switchScreen = switchScreen;
+window.goToStage = goToStage;
